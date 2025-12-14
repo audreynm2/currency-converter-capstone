@@ -1,87 +1,106 @@
-import { useState } from 'react';
-import InputBox from './components/InputBox';
-import useCurrencyInfo from './hooks/useCurrencyInfo';
+import { useEffect, useState, useMemo } from "react";
 
-function App() {
-  const [amount, setAmount] = useState(0);
-  const [from, setFrom] = useState("USD");
-  const [to, setTo] = useState("ZAR");
-  const [convertedAmount, setConvertedAmount] = useState(0);
+const API_KEY = "a8f896e2fe5bfa1aa1fe9c8b";
 
-  // fetching the exchange rates based on the 'from' currency
-  const currencyInfo = useCurrencyInfo(from);
+export default function App() {
+  const [rates, setRates] = useState({});
+  const [base, setBase] = useState("USD");
+  const [amount, setAmount] = useState(1);
+  const [targets] = useState(["EUR", "GBP", "ZAR"]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // safely extracting keys for the dropdown options
-  const options = Object.keys(currencyInfo || {});
+  useEffect(() => {
+    setLoading(true);
+    fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/latest/${base}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.result !== "success") throw new Error("API error");
+        setRates(data.conversion_rates);
+        setError(null);
+      })
+      .catch(() => setError("Failed to load exchange rates"))
+      .finally(() => setLoading(false));
+  }, [base]);
 
-  const swap = () => {
-    setFrom(to);
-    setTo(from);
-    setConvertedAmount(amount);
-    setAmount(convertedAmount);
-  };
+  const converted = useMemo(() => {
+    if (!rates) return {};
+    return targets.reduce((acc, cur) => {
+      acc[cur] = rates[cur]?.toFixed(2) || "0.00";
+      return acc;
+    }, {});
+  }, [rates, targets]);
 
-  const convert = () => {
-    // calculation: amount * rate of target currency
-    if (currencyInfo[to]) {
-        setConvertedAmount(amount * currencyInfo[to]);
-    }
-  };
+  const currencies = Object.keys(rates);
 
   return (
-    <div className="w-full h-screen flex flex-wrap justify-center items-center">
-      <div className="w-full">
-        <div className="w-full max-w-md mx-auto border border-gray-60 rounded-xl p-5 backdrop-blur-sm bg-white/30 shadow-2xl">
-          <h1 className='text-center text-3xl font-extrabold mb-8 text-white'>
-             Currency Converter
+    <div className="relative min-h-screen">
+      {/* Star field */}
+      <div className="star-field" />
+
+      {/* Sun */}
+      <div className="absolute top-1/2 left-1/2 w-[200px] h-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 blur-2xl shadow-[0_0_120px_40px_rgba(255,140,0,0.6)] animate-pulse-slow" />
+
+      {/* Orbit rings */}
+      <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] border border-white/10 rounded-full animate-spin-slow" />
+      <div className="absolute top-1/2 left-1/2 w-[600px] h-[600px] border border-white/5 rounded-full animate-spin-reverse" />
+
+      {/* Planets */}
+      <div className="absolute top-1/2 left-1/2 w-[14px] h-[14px] bg-blue-400 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.9)] orbit orbit-1" />
+      <div className="absolute top-1/2 left-1/2 w-[18px] h-[18px] bg-purple-400 rounded-full shadow-[0_0_25px_rgba(168,85,247,0.9)] orbit orbit-2" />
+      <div className="absolute top-1/2 left-1/2 w-[10px] h-[10px] bg-pink-400 rounded-full shadow-[0_0_18px_rgba(236,72,153,0.9)] orbit orbit-3" />
+
+      {/* Converter UI */}
+      <main className="relative z-10 flex items-center justify-center px-4 py-24">
+        <div className="max-w-2xl w-full backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-[0_0_60px_rgba(124,58,237,0.5)]">
+          <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-400 bg-clip-text text-transparent mb-6">
+            Cosmic Multi-Currency Converter
           </h1>
-          
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              convert();
-            }}
-          >
-            <div className="w-full mb-1">
-              <InputBox
-                label="From"
-                amount={amount}
-                currencyOptions={options}
-                onCurrencyChange={(currency) => setFrom(currency)}
-                selectCurrency={from}
-                onAmountChange={(amount) => setAmount(amount)}
-              />
-            </div>
-            
-            <div className="relative w-full h-0.5">
-              <button
-                type="button"
-                className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-white rounded-md bg-blue-600 text-white px-3 py-1 font-semibold hover:bg-blue-700 transition-all shadow-md"
-                onClick={swap}
-              >
-                Swap
-              </button>
-            </div>
 
-            <div className="w-full mt-1 mb-4">
-              <InputBox
-                label="To"
-                amount={convertedAmount}
-                currencyOptions={options}
-                onCurrencyChange={(currency) => setTo(currency)}
-                selectCurrency={to}
-                amountDisable
-              />
-            </div>
+          {loading && <p className="text-center">Loading exchange rates...</p>}
+          {error && <p className="text-center text-red-400">{error}</p>}
 
-            <button type="submit" className="w-full bg-green-500 text-white px-4 py-3 rounded-lg font-bold hover:bg-green-600 transition-all shadow-lg">
-              Convert {from.toUpperCase()} to {to.toUpperCase()}
-            </button>
-          </form>
+          {!loading && !error && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <input
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+
+                <select
+                  value={base}
+                  onChange={(e) => setBase(e.target.value)}
+                  className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3"
+                >
+                  {currencies.map((cur) => (
+                    <option key={cur}>{cur}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-3">
+                {targets.map((cur) => (
+                  <div
+                    key={cur}
+                    className="flex justify-between items-center bg-black/40 border border-white/10 rounded-xl px-4 py-3 hover:scale-[1.02] transition"
+                  >
+                    <span className="text-lg">{cur}</span>
+                    <span className="text-xl font-semibold text-purple-300">
+                      {converted[cur]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
-      </div>
+      </main>
+
+      {/* Shooting star */}
+      <div className="absolute top-20 left-[-20%] w-[300px] h-[2px] bg-gradient-to-r from-white via-white/50 to-transparent rotate-12 animate-shoot" />
     </div>
   );
 }
-
-export default App;

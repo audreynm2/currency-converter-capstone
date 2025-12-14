@@ -2,8 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background: radial-gradient(circle at top left, #1f2937, #111827);
-  color: white;
-  min-height: 100vh;
+/* Extra cosmic styles */
+.star-field {
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px);
+  background-size: 3px 3px;
+  position: absolute;
+  inset: 0;
+  animation: stars 60s linear infinite;
 }
