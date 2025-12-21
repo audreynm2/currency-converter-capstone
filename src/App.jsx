@@ -1,106 +1,78 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useState } from 'react';
 
-const API_KEY = "a8f896e2fe5bfa1aa1fe9c8b";
+function App() {
+  const [amount, setAmount] = useState('');
+  const [fromCurrency, setFromCurrency] = useState('USD');
+  const [toCurrency, setToCurrency] = useState('EUR');
+  const [result, setResult] = useState(null);
 
-export default function App() {
-  const [rates, setRates] = useState({});
-  const [base, setBase] = useState("USD");
-  const [amount, setAmount] = useState(1);
-  const [targets] = useState(["EUR", "GBP", "ZAR"]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'];
 
-  useEffect(() => {
-    setLoading(true);
-    fetch(`https://v6.exchangerate-api.com/v6/${API_KEY}/latest/${base}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.result !== "success") throw new Error("API error");
-        setRates(data.conversion_rates);
-        setError(null);
-      })
-      .catch(() => setError("Failed to load exchange rates"))
-      .finally(() => setLoading(false));
-  }, [base]);
-
-  const converted = useMemo(() => {
-    if (!rates) return {};
-    return targets.reduce((acc, cur) => {
-      acc[cur] = rates[cur]?.toFixed(2) || "0.00";
-      return acc;
-    }, {});
-  }, [rates, targets]);
-
-  const currencies = Object.keys(rates);
+  const handleConvert = async () => {
+    if (!amount) return;
+    try {
+      const res = await fetch(
+        `https://api.exchangerate.host/convert?from=${fromCurrency}&to=${toCurrency}&amount=${amount}`
+      );
+      const data = await res.json();
+      setResult(data.result.toFixed(2));
+    } catch (err) {
+      console.error('Conversion error:', err);
+      setResult('Error');
+    }
+  };
 
   return (
-    <div className="relative min-h-screen">
-      {/* Star field */}
-      <div className="star-field" />
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="stars"></div>
 
-      {/* Sun */}
-      <div className="absolute top-1/2 left-1/2 w-[200px] h-[200px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600 blur-2xl shadow-[0_0_120px_40px_rgba(255,140,0,0.6)] animate-pulse-slow" />
+      <h1 className="text-4xl font-bold mb-6 text-purple-400">🌌 Cosmic Currency Converter</h1>
 
-      {/* Orbit rings */}
-      <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] border border-white/10 rounded-full animate-spin-slow" />
-      <div className="absolute top-1/2 left-1/2 w-[600px] h-[600px] border border-white/5 rounded-full animate-spin-reverse" />
+      <div className="flex flex-col md:flex-row gap-4 items-center mb-6">
+        <input
+          type="number"
+          className="input"
+          placeholder="Amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
 
-      {/* Planets */}
-      <div className="absolute top-1/2 left-1/2 w-[14px] h-[14px] bg-blue-400 rounded-full shadow-[0_0_20px_rgba(59,130,246,0.9)] orbit orbit-1" />
-      <div className="absolute top-1/2 left-1/2 w-[18px] h-[18px] bg-purple-400 rounded-full shadow-[0_0_25px_rgba(168,85,247,0.9)] orbit orbit-2" />
-      <div className="absolute top-1/2 left-1/2 w-[10px] h-[10px] bg-pink-400 rounded-full shadow-[0_0_18px_rgba(236,72,153,0.9)] orbit orbit-3" />
+        <select
+          className="input"
+          value={fromCurrency}
+          onChange={(e) => setFromCurrency(e.target.value)}
+        >
+          {currencies.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
 
-      {/* Converter UI */}
-      <main className="relative z-10 flex items-center justify-center px-4 py-24">
-        <div className="max-w-2xl w-full backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-[0_0_60px_rgba(124,58,237,0.5)]">
-          <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-400 bg-clip-text text-transparent mb-6">
-            Cosmic Multi-Currency Converter
-          </h1>
+        <select
+          className="input"
+          value={toCurrency}
+          onChange={(e) => setToCurrency(e.target.value)}
+        >
+          {currencies.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
 
-          {loading && <p className="text-center">Loading exchange rates...</p>}
-          {error && <p className="text-center text-red-400">{error}</p>}
+      <button className="btn mb-6" onClick={handleConvert}>
+        Convert
+      </button>
 
-          {!loading && !error && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(Number(e.target.value))}
-                  className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-
-                <select
-                  value={base}
-                  onChange={(e) => setBase(e.target.value)}
-                  className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3"
-                >
-                  {currencies.map((cur) => (
-                    <option key={cur}>{cur}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-3">
-                {targets.map((cur) => (
-                  <div
-                    key={cur}
-                    className="flex justify-between items-center bg-black/40 border border-white/10 rounded-xl px-4 py-3 hover:scale-[1.02] transition"
-                  >
-                    <span className="text-lg">{cur}</span>
-                    <span className="text-xl font-semibold text-purple-300">
-                      {converted[cur]}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+      {result !== null && (
+        <div className="text-xl md:text-2xl font-semibold text-purple-200">
+          {amount} {fromCurrency} ➡ {result} {toCurrency}
         </div>
-      </main>
-
-      {/* Shooting star */}
-      <div className="absolute top-20 left-[-20%] w-[300px] h-[2px] bg-gradient-to-r from-white via-white/50 to-transparent rotate-12 animate-shoot" />
+      )}
     </div>
   );
 }
+
+export default App;

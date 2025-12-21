@@ -1,12 +1,30 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
-/* Extra cosmic styles */
-.star-field {
-  background: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px);
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #0f172a; /* cosmic dark */
+  color: white;
+  overflow-x: hidden;
+
+}
+
+.stars {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  background: transparent;
+  background-image: radial-gradient(white 1px, transparent 1px);
   background-size: 3px 3px;
-  position: absolute;
-  inset: 0;
-  animation: stars 60s linear infinite;
+  animation: moveStars 120s linear infinite;
+  z-index: -1;
+  opacity: 0.4;
+}
+
+@keyframes moveStars {
+  0% { transform: translateY(0) translateX(0); }
+  100% { transform: translateY(-1000px) translateX(1000px); }
 }
