@@ -57,4 +57,4 @@ View the live application here:
 
 ## 👩🏽‍💻 Author
 Audrey N. Machivenyika 
-Frontend Developer | Software Engineering Student
+Software Developer | Software Engineering Student
