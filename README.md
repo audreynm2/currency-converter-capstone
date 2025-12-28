@@ -56,5 +56,5 @@ View the live application here:
 --
 
 ## 👩🏽‍💻 Author
-Audrey N. Machivenyika 
+Audrey Machivenyika 
 Software Developer | Software Engineering Student
