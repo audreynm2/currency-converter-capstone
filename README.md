@@ -49,6 +49,12 @@ http://localhost:5173
 
 ---
 
+## 🌍 Live Demo
+View the live application here:  
+[Neo Converter Live](https://currency-converter-capstone-kqj0ve208.vercel.app/)
+
+--
+
 ## 👩🏽‍💻 Author
 Audrey N. Machivenyika 
 Frontend Developer | Software Engineering Student
